@@ -6,7 +6,7 @@ The bot will be intended to be run on the command line.  GUI is hard.  The inten
 
 ## The Plan
 
-The bot will be written in python: it's easy to write and will run just about anywhere.  Releases should be created using (pyinstaller)[https://pypi.org/project/pyinstaller/].
+The bot will be written in python: it's easy to write and will run just about anywhere.  Releases should be created using [pyinstaller](https://pypi.org/project/pyinstaller/).
 
 ### Features
 
