@@ -1,4 +1,4 @@
-src/settings.toml
+src/settings.toml*
 src/*.log
 
 ### Standard Github Python template
