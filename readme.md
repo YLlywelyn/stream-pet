@@ -33,11 +33,11 @@ flowchart TD
     A([START]) -->
     B{Does settings file exist?}
     B -- Yes --> D
-    B -- No --> C[Create default settings file] --> D
+    B -- No --> C[Create default settings file] --> error0([LOG ERROR AND EXIT])
     D[Load settings]
     D --> E{Are client id and secret set?}
     E -- Yes --> F[Obtain access token]
-    E -- No --> G([LOG ERROR AND EXIT])
-    F --> H{Have valid token?}
-    H -- Yes --> I[Start loop]
-    H -- No --> J([LOG ERROR AND EXIT])
+    E -- No --> error1([LOG ERROR AND EXIT])
+    F --> G{Have valid token?}
+    G -- Yes --> H[Start loop]
+    G -- No --> error2([LOG ERROR AND EXIT])
