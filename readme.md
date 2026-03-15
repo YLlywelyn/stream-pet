@@ -6,7 +6,7 @@ The bot will be intended to be run on the command line.  GUI is hard.  The inten
 
 ## The Plan
 
-The bot will be written in python: it's easy to write and will run just about anywhere.  Releases should be compiled into a [zipapp](https://docs.python.org/3/library/zipapp.html).
+The bot will be written in python: it's easy to write and will run just about anywhere.  Releases should be created using (pyinstaller)[https://pypi.org/project/pyinstaller/].
 
 ### Features
 
@@ -25,3 +25,19 @@ The bot will be written in python: it's easy to write and will run just about an
 - React to subscriptions
 - React to channel point rewards
 - Add a GUI
+
+### Program flow
+
+```mermaid
+flowchart TD
+    A([START]) -->
+    B{Does settings file exist?}
+    B -- Yes --> D
+    B -- No --> C[Create default settings file] --> D
+    D[Load settings]
+    D --> E{Are client id and secret set?}
+    E -- Yes --> F[Obtain access token]
+    E -- No --> G([LOG ERROR AND EXIT])
+    F --> H{Have valid token?}
+    H -- Yes --> I[Start loop]
+    H -- No --> J([LOG ERROR AND EXIT])
