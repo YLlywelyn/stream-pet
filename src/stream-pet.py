@@ -1,22 +1,23 @@
 import logging, tomllib, os, sys, requests
 
-__settings_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "settings.toml")
-__log_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "stream-pet.log")
-__default_settings = """# Settings for Stream Pet
+def main():
+	settings_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "settings.toml")
+	log_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "stream-pet.log")
+	default_settings = """# Settings for Stream Pet
 
 [api_settings]
 client_id = "CLIENT_ID"
 client_secret = "CLIENT_SECRET"
+channel_name = "YOUR_TWITCH_NAME
 """
-
-def main():
+	
 	# Create the logger to log output
 	logger = logging.getLogger("StreamPet")
 	
 	# Set filename for logger
 	logging.basicConfig(handlers=[
 							logging.StreamHandler(sys.stdout),
-							logging.FileHandler(__log_path)
+							logging.FileHandler(log_path)
 						],
 						encoding="utf-8",
 						level=logging.DEBUG, # TODO: change log level for production
@@ -26,20 +27,20 @@ def main():
 	# Disable logging from the urllib3 library
 	logging.getLogger("urllib3").setLevel(logging.ERROR)
 	
-	# Log startt of program
+	# Log start of program
 	logger.info("Stream Pet started.")
 	
 	# Load settings
 	try:
-		with open(__settings_path, "rb") as f:
+		with open(settings_path, "rb") as f:
 			settings = tomllib.load(f)
 	except FileNotFoundError:
 		# Settings file not found, create it
-		logger.warning("Settings file not found, default written.")
-		with open(__settings_path, "w") as f:
-			f.write(__default_settings)
-		os.chmod(__settings_path, 0o600)
-		settings = tomllib.loads(__default_settings)
+		logger.error("Settings file not found, default written.")
+		with open(settings_path, "w") as f:
+			f.write(default_settings)
+		os.chmod(settings_path, 0o600)
+		os.exit(1)
 	
 	# Obtain access token
 	token_response = requests.post("https://id.twitch.tv/oauth2/token",
@@ -52,7 +53,7 @@ def main():
 		os._exit(1)
 	# Else, store token and continue
 	else:
-		settings["api_settings"]["access_token"] = token_response["access_token"]
+		settings["api_token"] = token_response
 
 if __name__ == "__main__":
 	main()

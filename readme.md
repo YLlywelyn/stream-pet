@@ -8,7 +8,7 @@ The bot will be intended to be run on the command line.  GUI is hard.  The inten
 
 The bot will be written in python: it's easy to write and will run just about anywhere.  Releases should be created using [pyinstaller](https://pypi.org/project/pyinstaller/).
 
-### Features
+## Features
 
 - Connect to the Twitch API
 - Extensive logging to local file
