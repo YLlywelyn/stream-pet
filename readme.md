@@ -30,14 +30,13 @@ The bot will be written in python: it's easy to write and will run just about an
 
 ```mermaid
 flowchart TD
-    A([START]) -->
+    A([START]) --> B
     B{Does settings file exist?}
     B -- Yes --> D
     B -- No --> C[Create default settings file] --> error0([LOG ERROR AND EXIT])
     D[Load settings]
-    D --> E{Are client id and secret set?}
-    E -- Yes --> F[Obtain access token]
-    E -- No --> error1([LOG ERROR AND EXIT])
-    F --> G{Have valid token?}
-    G -- Yes --> H[Start loop]
-    G -- No --> error2([LOG ERROR AND EXIT])
+    D --> E
+    E[Obtain access token] --> F
+    F{Have valid token?} -- Yes --> G
+    F -- No --> error2([LOG ERROR AND EXIT])
+    G[Start loop]
