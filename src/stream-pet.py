@@ -1,86 +1,66 @@
-import asyncio, logging, os, requests, sys, tomllib
-from twitchAPI.twitch import Twitch
+import asyncio, qrcode, requests
 
+from log import LogMessage, LogError, LogErrorAndExit
 from settings import Settings
 
-logger: logging.Logger
-log_path: str = os.path.join(os.path.dirname(os.path.realpath(__file__)), "stream-pet.log")
+def Clear() -> None:
+	print("\x1b[H\x1b[2J")
 
 settings: Settings
-default_settings: str = """# Settings for Stream Pet
-client_id = "CLIENT_ID"
-client_secret = "CLIENT_SECRET"
-channel_name = "YOUR_TWITCH_NAME
-"""
 
-def LogErrorAndExit(message: str) -> None:
-	logger.error(message)
-	sys.exit(1)
-
-# Set up the logger
-def SetupLogger() -> None:
-	global logger
+def ObtainAuthToken() -> dict:
+	tokens = {}
+	scopes = ["channel:bot",
+			  "user:write:chat",
+			  "channel:read:ads"
+	]
+	scopeString = " ".join(scopes)
+	LogMessage(f"Scopes: {scopeString}")
 	
-	# Setup logger
-	logging.basicConfig(handlers=[
-							logging.StreamHandler(sys.stdout),
-							logging.FileHandler(log_path)
-						],
-						encoding="utf-8",
-						level=logging.DEBUG, # TODO: change log level for production
-						format='[%(asctime)s] %(levelname)s: %(message)s',
-						datefmt='%Y-%m-%d %I:%M:%S')
-	# Disable logging from the urllib3 library
-	logging.getLogger("urllib3").setLevel(logging.ERROR)
+	device_code_response: dict = requests.post("https://id.twitch.tv/oauth2/device",
+		data={"client_id": settings.clientID,
+			  "scopes": scopeString
+		}).json()
 	
-	logger = logging.getLogger("StreamPet")
-
-# Load settings from file
-def LoadSettings() -> None:
-	global settings
+	# display qr code for auth
+	qr = qrcode.QRCode()
+	qr.add_data(device_code_response["verification_uri"])
+	qr.print_ascii()
+	LogMessage("Waiting for auth.")
+	input(f"Go to {device_code_response["verification_uri"]} and enter code [{device_code_response["user_code"]}], press <ENTER> when complete...")
+	LogMessage("Checking with server...")
 	
-	try:
-		with open(settings_path, "rb") as f:
-			settings = tomllib.load(f)
-	except FileNotFoundError:
-		# Settings file not found.  Create it, log error and quit
-		with open(settings_path, "w") as f:
-			f.write(default_settings)
-		os.chmod(settings_path, 0o600)
-		LogErrorAndExit("Settings file not found, default written.")
-	except tomllib.TOMLDecodeError as e:
-		# Settings file malformed.  Log error and quit
-		LogErrorAndExit(f"Settings file has malformed TOML: {e}")
-	
-	# Rough sanity check
-	if type(settings) is not dict:
-		LogErrorAndExit("Settings failed to load.")
-	if "api_settings" not in settings:
-		LogErrorAndExit("API settings missing from file.")
-		
-def ObtainAccessToken() -> None:
-	# Obtain access token
 	token_response: dict = requests.post("https://id.twitch.tv/oauth2/token",
-		data={"client_id": settings["api_settings"]["client_id"],
-		   "client_secret": settings["api_settings"]["client_secret"],
-		   "grant_type": "client_credentials"}).json()
-	# If no token recieved, exit
-	if "access_token" not in token_response:
-		LogErrorAndExit("No token recieved, check client_id and client_secret.")
-	# Else, store token and continue
+		data={"client_id": settings.clientID,
+			  "scopes": "%20".join(scopes),
+			  "device_code": device_code_response["device_code"],
+			  "grant_type": "urn:ietf:params:oauth:grant-type:device_code"
+		}).json()
+	
+	# If we have a status code, something went wrong...
+	if "status" in token_response:
+		LogErrorAndExit(f"Device authentication error: {token_response["message"]}")
+	# Else, success!
 	else:
-		settings["api_token"] = token_response
+		tokens["access_token"] = token_response["access_token"]
+		tokens["expires_in"] = token_response["expires_in"]
+		tokens["refresh_token"] = token_response["refresh_token"]
+		tokens["scope"] = token_response["scope"]
+		tokens["token_type"] = token_response["token_type"]
+	
+	return tokens
 
 async def main() -> None:
-	twitch: Twitch = await Twitch(settings["api_settings"]["client_id"],
-								  settings["api_settings"]["client_secret"])
-	users: list = []
-	async for user in twitch.get_users(logins=["ylva_the_voiceless", "nachochoco"]):
-		users.append({"id": user.id, "name": user.display_name, "description": user.description})
-	print(users)
+	# Clear the screen
+	Clear()
+	
+	LogMessage("Starting app...")
+	
+	ObtainAuthToken()
+	
+	LogMessage("Successfully aquired user token!")
 
 if __name__ == "__main__":
-	SetupLogger()
-	LoadSettings()
+	settings = Settings.Load()
 	
 	asyncio.run(main())
