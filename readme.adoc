@@ -10,8 +10,8 @@ The bot will be written in python: it's easy to write and will run just about an
 
 == Features
 
-* [ ] Connect to the Twitch API
-* [ ] Extensive logging to local file
+* [x] Logging to local file
+* [x] Connect to the Twitch API
 * [ ] React to commands in chat
 * [ ] React to raids
 * [ ] User interaction
@@ -39,10 +39,5 @@ flowchart TD
     E[Obtain access token] --> F
     F{Have valid token?} -- Yes --> G
     F -- No --> error2([LOG ERROR AND EXIT])
-    G[Start loop]
+    G[Start event loop]
 ----
-
-== Classes & Data Structures
-
-=== Command
-

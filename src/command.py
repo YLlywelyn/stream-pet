@@ -1,9 +1,14 @@
 import re
 from enum import Enum, auto
-from log import LogErrorAndExit
+import log
 
 class CommandTypes(Enum):
 	BASIC_MESSAGE = auto()
+
+class UserLevels(Enum):
+	BROADCASTER = auto()
+	MODERATOR = auto()
+	USER = auto()
 
 class Command:
 	
@@ -11,14 +16,27 @@ class Command:
 	# This is a compiled regex object
 	match: re.Pattern
 	
+	# The type of command
+	type: CommandTypes
+	
+	# The required user level
+	userLevel: UserLevels
+	
 	# The message to respond with in chat
 	message: str
 	
-	def __init__(self: Command, command: dict) -> None:
+	def __init__(self, name: str, command: dict) -> None:
+		# Set command type
 		try:
 			self.commandType = CommandTypes[command["command_type"]]
 		except KeyError:
-			LogErrorAndExit(f"Invalid command type: {command["type"]}")
+			log.LogError(f"Invalid command type for {name}: {command["type"]}", True)
+			
+		# Set user level
+		try:
+			self.userLevel = UserLevels[command["user_level"]]
+		except KeyError:
+			log.LogError(f"Invalid user level for {name}: {command["user_level"]}", True)
 		
 		try:
 			match self.commandType:
@@ -30,6 +48,6 @@ class Command:
 				case _:
 					self.match = re.compile(command["match"])
 		except Exception as e:
-			LogErrorAndExit(f"Error parsing command: {e}")
+			log.LogError(f"Error parsing command '{name}'': {e}", True)
 	
 	

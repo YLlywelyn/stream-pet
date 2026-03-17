@@ -22,15 +22,20 @@ def __SetupLogger() -> None:
 	
 	__logger = logging.getLogger("StreamPet")
 
-def LogMessage(message: str) -> None:
+def LogMessage(message: str, exit: bool = False) -> None:
 	__logger.info(message)
+	if exit:
+		sys.exit(1)
 
-def LogError(message: str) -> None:
-	__logger.error(message)
+def LogWarning(message: str, exit: bool = False) -> None:
+	__logger.warning(message)
+	if exit:
+		sys.exit(1)
 
-def LogErrorAndExit(message: str) -> None:
+def LogError(message: str, exit: bool = False) -> None:
 	__logger.error(message)
-	sys.exit(1)
+	if exit:
+		sys.exit(1)
 
 try:
 	LOG_IMPORTED

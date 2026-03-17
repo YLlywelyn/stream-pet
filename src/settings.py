@@ -1,17 +1,24 @@
 import os, tomllib
 from command import Command
-from log import LogErrorAndExit
+import log
 
 settings_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "settings.toml")
 default_settings: str = """# Settings for Stream Pet
 
 client_id = "CLIENT_ID"
-# client_secret = "CLIENT_SECRET"
+client_secret = "CLIENT_SECRET"
 channel_name = "CHANNEL_NAME"
+
+[commands.socials]
+match = "!socials"
+command_type = "BASIC_MESSAGE"
+user_level = "USER"
+message = "https://twitch.tv/%broadcaster%"
 
 [commands.test]
 match = "!test"
 command_type = "BASIC_MESSAGE"
+user_level = "MODERATOR"
 message = "Hello from Stream Pet!"
 """
 
@@ -46,16 +53,16 @@ class Settings:
 			with open(settings_path, "w") as f:
 				f.write(default_settings)
 			os.chmod(settings_path, 0o600)
-			LogErrorAndExit("Settings file not found, default written.")
+			log.LogError("Settings file not found, default written.", True)
 		except tomllib.TOMLDecodeError as e:
 			# Settings file malformed.  Log error and quit
-			LogErrorAndExit(f"Settings file has malformed TOML: {e}")
+			log.LogError(f"Settings file has malformed TOML: {e}", True)
 		
 		try:
 			# Parse commands from file
 			commands: dict(Command) = {}
 			for key, data in tomlSettings["commands"].items():
-				commands[key] = Command(data)
+				commands[key] = Command(key, data)
 			
 			# Create settings object
 			settings: Settings = Settings(clientID = tomlSettings["client_id"],
@@ -63,6 +70,6 @@ class Settings:
 										  channel_name = tomlSettings["channel_name"],
 										  commands = commands)
 		except Exception as e:
-			LogErrorAndExit(f"Settings failed to load: {e}")
+			log.LogError(f"Settings failed to load: {e}", True)
 		
 		return settings
