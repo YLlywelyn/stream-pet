@@ -1,0 +1,7 @@
+inputimeout
+logging
+qrcode
+# re
+requests
+# tomllib
+websockets
